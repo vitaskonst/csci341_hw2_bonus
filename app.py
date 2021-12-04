@@ -19,8 +19,10 @@ def init_db():
 	filepath = Path('db/init.sql')
 
 	with engine.begin() as conn:
-	    for query in [x.strip() for x in filepath.read_text().split(';') if x.strip()]:
-	        conn.execute(text(query))
+		for query in [x.strip() for x in filepath.read_text().split(';') if x.strip()]:
+			conn.execute(text(query))
+
+	print('All tables were created successfully')
 
 
 @click.command(name='fill-mock-db')
@@ -29,8 +31,10 @@ def fill_mock_db():
 	filepath = Path('db/mock.sql')
 
 	with engine.connect() as conn:
-	    for query in [x.strip() for x in filepath.read_text().split(';') if x.strip()]:
-	        conn.execute(text(query))
+		for query in [x.strip() for x in filepath.read_text().split(';') if x.strip()]:
+			conn.execute(text(query))
+
+	print('All rows were inserted successfully')
 
 
 app.cli.add_command(init_db)
