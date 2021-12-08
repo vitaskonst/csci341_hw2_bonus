@@ -33,35 +33,37 @@ CREATE TABLE Discover (
 );
 
 CREATE TABLE Users (
-	email          varchar(60) PRIMARY KEY,
+	uid            serial PRIMARY KEY,
+	email          varchar(60) UNIQUE NOT NULL,
 	name           varchar(30) NOT NULL,
 	surname        varchar(40) NOT NULL,
 	salary         integer NOT NULL,
 	phone          varchar(20) UNIQUE NOT NULL,
-	cname          varchar(50) REFERENCES Country(cname) NOT NULL
+	cname          varchar(50) REFERENCES Country(cname) NOT NULL,
+	deleted        boolean DEFAULT FALSE NOT NULL
 );
 
 CREATE TABLE PublicServant (
-	email          varchar(60) PRIMARY KEY REFERENCES Users(email) ON DELETE CASCADE ON UPDATE CASCADE,
+	uid            integer PRIMARY KEY REFERENCES Users(uid) ON DELETE CASCADE ON UPDATE CASCADE,
 	department     varchar(50) NOT NULL
 );
 
 CREATE TABLE Doctor (
-	email          varchar(60) PRIMARY KEY REFERENCES Users(email) ON DELETE CASCADE ON UPDATE CASCADE,
+	uid            integer PRIMARY KEY REFERENCES Users(uid) ON DELETE CASCADE ON UPDATE CASCADE,
 	degree         varchar(20) NOT NULL
 );
 
 CREATE TABLE Specialize (
 	id             integer REFERENCES DiseaseType(id),
-	email          varchar(60) REFERENCES Doctor(email) ON DELETE CASCADE ON UPDATE CASCADE,
-	PRIMARY KEY (id, email)
+	uid            integer REFERENCES Doctor(uid) ON DELETE CASCADE ON UPDATE CASCADE,
+	PRIMARY KEY (id, uid)
 );
 
 CREATE TABLE Record (
-	email          varchar(60) REFERENCES PublicServant(email) ON DELETE CASCADE ON UPDATE CASCADE,
+	uid            integer REFERENCES PublicServant(uid) ON DELETE CASCADE ON UPDATE CASCADE,
 	cname          varchar(50) REFERENCES Country(cname),
 	disease_code   varchar(50) REFERENCES Disease(disease_code),
 	total_deaths   integer NOT NULL,
 	total_patients integer NOT NULL,
-	PRIMARY KEY (email, cname, disease_code)
+	PRIMARY KEY (uid, cname, disease_code)
 );
