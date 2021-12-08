@@ -1,7 +1,8 @@
 from settings import DATABASE_URL
 
+import os
 import click
-from flask import Flask, request
+from flask import Flask, request, render_template, send_from_directory
 from pathlib import Path
 from flask.cli import with_appcontext
 from flask_restful import Resource, Api
@@ -65,9 +66,13 @@ class UserModel:
 
 	def get_all():
 		with engine.connect() as conn:
-			users_raw = conn.execute(text('SELECT * FROM Users WHERE deleted IS FALSE;')).mappings()
+			users_raw = conn.execute(text("""
+				SELECT email, name, surname, salary, phone, cname as country
+				FROM Users
+				WHERE deleted IS FALSE;
+			""")).mappings()
 		
-		return [{column: user[column] for column in users_raw.keys() if column != 'deleted'} for user in users_raw]
+		return [{column: user[column] for column in users_raw.keys()} for user in users_raw]
 
 	def get(uid=None, email=None, phone=None):
 		if len([arg for arg in [uid, email, phone] if arg is not None]) > 1:
@@ -85,9 +90,13 @@ class UserModel:
 		
 		try:
 			with engine.connect() as conn:
-				user = next(conn.execute(text(f'SELECT * FROM Users WHERE {column} = :arg AND deleted IS FALSE;').bindparams(arg=arg)).mappings())
+				user = next(conn.execute(text(f"""
+					SELECT email, name, surname, salary, phone, cname as country
+					FROM Users
+					WHERE {column} = :arg AND deleted IS FALSE;
+				""").bindparams(arg=arg)).mappings())
 
-			return {column: user[column] for column in user.keys() if column != 'deleted'}
+			return {column: user[column] for column in user.keys()}
 		except StopIteration:
 			return None
 
@@ -189,3 +198,13 @@ class Users(Resource):
 
 
 api.add_resource(Users, '/users', '/users/<int:uid>')
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                          'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route('/', methods=['GET'])
+def index():
+	return render_template('index.html')
